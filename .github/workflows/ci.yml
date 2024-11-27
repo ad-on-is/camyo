@@ -27,4 +27,4 @@ jobs:
           context: .
           file: Dockerfile
           push: true
-          tags: ghcr.io/${{ github.actor }}/camyo:${{ steps.get_tag.outputs.tag }} ghcr.io/${{ github.actor }}/camyo:latest
+          tags: ghcr.io/${{ github.actor }}/camyo:${{ steps.get_tag.outputs.tag }} , ghcr.io/${{ github.actor }}/camyo:latest
