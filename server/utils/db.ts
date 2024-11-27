@@ -1,12 +1,11 @@
 import { $ } from "bun";
 import {
-  Sequelize,
+  CreationOptional,
   DataTypes,
-  Model,
   InferAttributes,
   InferCreationAttributes,
-  CreationOptional,
-  NonAttribute,
+  Model,
+  Sequelize,
 } from "sequelize";
 const sequelize = new Sequelize({
   dialect: "sqlite",
@@ -31,7 +30,7 @@ class Device extends Model<
 }
 
 async function initDB() {
-  await Device.init(
+  Device.init(
     {
       id: {
         type: DataTypes.INTEGER.UNSIGNED,
@@ -57,7 +56,7 @@ async function initDB() {
     {
       tableName: "Devices",
       sequelize, // passing the `sequelize` instance is required
-    }
+    },
   );
   await sequelize.sync();
 }
@@ -66,7 +65,7 @@ async function netstat(port: number): Promise<boolean> {
   try {
     const ss = await $`ss -tln | grep :${port}`.text();
     return ss !== "";
-  } catch (e) {}
+  } catch (e) { }
   return false;
 }
 
@@ -82,4 +81,4 @@ async function getPortStatus(device: Device | null): Promise<Device | null> {
   return device;
 }
 
-export { sequelize, Device, getPortStatus, initDB };
+export { Device, getPortStatus, initDB, sequelize };
