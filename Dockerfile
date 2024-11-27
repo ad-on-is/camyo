@@ -7,7 +7,7 @@ ENV BUN_RUNTIME_TRANSPILER_CACHE_PATH=${BUN_RUNTIME_TRANSPILER_CACHE_PATH}
 
 ARG BUN_INSTALL_BIN=/usr/local/bin
 ENV BUN_INSTALL_BIN=${BUN_INSTALL_BIN}
-COPY package.json
+COPY package.json .
 RUN bun install
 COPY . .
 RUN bun --bun run build
