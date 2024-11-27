@@ -1,14 +1,20 @@
 #!/bin/sh
 
 CAMYO_URL="https://camyourl.com"
-SSH_TUNNEL_HOST="sshuser@sshost.com"
+SSH_TUNNEL_HOST="user@sshtunnel.com" #only users with no password supported
 SSH_TUNNEL_PORT=2222
 
 # either enter a static identifier or use a script to get the serial number of the device
 DEVICE_ID="MY_DEVICE"
 
+# exmaple
+# DEVICE_ID=$(cat /sys/class/dmi/id/product_serial) or whatever
 
 
+# the "-k" param ignores SSL certificate errors. Remove it if needed.
+getports() {
+  echo $(curl -sSL -k "$CAMYO_URL/api/connect/$DEVICE_ID" 2>/dev/null)
+}
 
 
 
@@ -32,10 +38,6 @@ fi
 
 
 
-
-getports() {
-  echo $(curl -sSL "$CAMYO_URL/api/connect/$DEVICE_ID" 2>/dev/null)
-}
 
 log_message() {
   echo "$1"
@@ -63,6 +65,9 @@ ensure_single_instance() {
   # Function to create the SSH reverse tunnel
   # $1 REMOTE_PORT, $2 LOCAL_PORT
 create_tunnel() {
+    if [[ $1 == "" || $2 == "" ]]; then
+      return 1
+    fi
     ssh -f -y -N -R *:${1}:0.0.0.0:${2} -p ${SSH_TUNNEL_PORT} \
       -o ExitOnForwardFailure=yes \
       ${SSH_TUNNEL_HOST}
@@ -87,7 +92,6 @@ check_tunnel() {
 
 # Function to check server reachability (using ping)
 check_server() {
-    echo "ping ${REMOTE_HOSTNAME}"
     if ping -c 1 -W ${TIMEOUT} ${REMOTE_HOSTNAME} > /dev/null 2>&1; then
         return 0
     else
@@ -174,7 +178,7 @@ done
 
 
 createtunnels() {
-  for port in $ports; do
+  for port in $ports; do 
     LOCAL_PORT=$(echo $port | awk -F ':' '{print $1}')
     REMOTE_PORT=$(echo $port | awk -F ':' '{print $2}')
     ./$(basename "$0") $REMOTE_PORT $LOCAL_PORT &
@@ -187,7 +191,6 @@ kill_old() {
     REMOTE_PORT=$(echo $port | awk -F ':' '{print $2}')
     kill_ssh_process $REMOTE_PORT $LOCAL_PORT &
     kill_fork_process $REMOTE_PORT $LOCAL_PORT 
-    echo "KILLING: $port"
     sleep 0.3
   done
 
@@ -195,14 +198,13 @@ kill_old() {
 
 }
 
-if [[ -n $1 ]]; then
+if [[ ${#1} -gt 0 && ${#2} -gt 0 ]]; then
   run $1 $2
 fi
 
 while true; do
   ports=$(getports)
   if [[ -z $ports ]]; then
-    echo "no ports"
     sleep 1
     continue
   fi
@@ -210,11 +212,9 @@ while true; do
 
   if [[ -z $oldports ]]; then
     oldports=$ports
-    echo "creating fresh tunnels"
     createtunnels
   else
     if [[ $ports != $oldports ]]; then
-      echo "ports changed"
       kill_old
     fi
   fi
