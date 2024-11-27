@@ -204,17 +204,17 @@ fi
 
 while true; do
   ports=$(getports)
-  if [[ -z $ports ]]; then
+  if [[ -z "$ports" ]]; then
     sleep 1
     continue
   fi
 
 
-  if [[ -z $oldports ]]; then
+  if [[ -z "$oldports" ]]; then
     oldports=$ports
     createtunnels
   else
-    if [[ $ports != $oldports ]]; then
+    if [[ "$ports" != "$oldports" ]]; then
       kill_old
     fi
   fi
